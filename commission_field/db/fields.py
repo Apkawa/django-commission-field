@@ -26,8 +26,8 @@ class CommissionTypeEnum(enum.Enum):
 
 
 COMMISSION_TYPE_CHOICES = [
-    [CommissionTypeEnum.PERCENT, 'Процентный'],
-    [CommissionTypeEnum.FIXED, 'Фиксированный'],
+    [CommissionTypeEnum.PERCENT.value, 'Процентный'],
+    [CommissionTypeEnum.FIXED.value, 'Фиксированный'],
 ]
 
 DEFAULT_STRATEGY_CLASS = 'commission_field.strategy.GenericStrategy'
@@ -36,16 +36,16 @@ DEFAULT_STRATEGY_CLASS = 'commission_field.strategy.GenericStrategy'
 class CommissionField(models.Field):
     def __init__(self, verbose_name=None, name=None,
                  type_choices=COMMISSION_TYPE_CHOICES,
-                 type_default=CommissionTypeEnum.PERCENT,
+                 type_default=CommissionTypeEnum.PERCENT.value,
                  tax_default=Decimal(0),
                  value_default=Decimal(0),
-                 strategy_class=DEFAULT_STRATEGY_CLASS,
                  **kwargs):
+        kwargs.setdefault('strategy_class', DEFAULT_STRATEGY_CLASS)
         self.type_choices = type_choices
         self.type_default = type_default
         self.tax_default = tax_default
         self.value_default = value_default
-        self.strategy_class = strategy_class
+        self.strategy_class = kwargs.pop('strategy_class', None)
         super(CommissionField, self).__init__(verbose_name, name, **kwargs)
 
     def get_strategy_class(self):
@@ -108,6 +108,9 @@ DEFAULT_TAX_STRATEGY_CLASS = 'commission_field.strategy.GenericTaxStrategy'
 
 
 class CommissionTaxField(CommissionField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('strategy_class', DEFAULT_STRATEGY_CLASS)
+
     def add_fields(self, cls, name):
         self.field_tax_name = _commission_tax_field_name(name)
         super().add_fields(cls, name)

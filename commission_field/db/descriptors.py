@@ -17,7 +17,7 @@ class Commission(object):
         self.field_name = field.name
 
         strategy_class = field.get_strategy_class()
-        strategy = strategy_class(self)
+        self.strategy = strategy = strategy_class(self)
         property_attrs = strategy_class.get_property_attrs()
         for name, value in property_attrs.items():
             _prop = {'fget': value.fget, 'fset': value.fset, 'fdel': value.fdel}
@@ -29,7 +29,7 @@ class Commission(object):
 
         attrs = strategy.get_attrs()
         for name, value in attrs.items():
-            setattr(instance, name, value)
+            setattr(self, name, value)
 
     def __repr__(self):
         return '<value: {self.value}, type: {self.type}, tax:{self.tax}>'.format(self=self)
@@ -46,8 +46,8 @@ class CommissionDescriptor(object):
 
     def __set__(self, obj, value):
         if isinstance(value, Commission):
-            setattr(obj, self.field.value_field_name, value.value)
-            setattr(obj, self.field.type_field_name, value.type)
+            setattr(obj, self.field.field_value_name, value.value)
+            setattr(obj, self.field.field_type_name, value.type)
         else:
-            setattr(obj, self.field.value_field_name, value)
+            setattr(obj, self.field.field_value_name, value)
             # raise AttributeError("Value should be Commission object. May be mean .value|.tax|.type?")

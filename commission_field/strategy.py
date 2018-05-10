@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from abc import ABC
 from decimal import Decimal
+from enum import Enum
 
 from commission_field.db.fields import CommissionTypeEnum
 
@@ -17,6 +18,8 @@ class BaseStrategy(ABC):
         'is_fixed',
         'value',
         'type',
+        'calculate_tax',
+        'extract_tax',
     ]
 
     def __init__(self, commission_object):
@@ -32,6 +35,34 @@ class BaseStrategy(ABC):
         self.value_field_name = self._field.field_value_name
         self.type_field_name = self._field.field_type_name
 
+    def calculate_tax(self, total):
+        """
+        Размер коммиссии или скидки
+        :param total:
+        :return:
+        """
+        if self.is_percent():
+            return self.get_percent(total, self.value)
+
+        elif self.is_fixed():
+            return normalize_decimal(self.value)
+        raise NotImplementedError("Commission type %s not implemented" % self.type)
+
+    def extract_tax(self, total_with_tax):
+        '''
+        Получаем коммиссию из цены с примененной коммиссией.
+        Не учитывает изменения коммиссии
+
+        :param total_with_tax: Стоимость с комиссией
+        :return:
+        '''
+        if self.is_percent():
+            return self.extract_percent(total_with_tax, self.value)
+
+        elif self.is_fixed():
+            return normalize_decimal(self.value)
+        raise NotImplementedError("Commission type %s not implemented" % self.type)
+
     @staticmethod
     def get_percent(total, value):
         return normalize_decimal(Decimal(total) * Decimal((float(value or 0) / 100.0)))
@@ -43,10 +74,10 @@ class BaseStrategy(ABC):
         return normalize_decimal(total_with_percent - (total_with_percent / (1 + percent)))
 
     def is_percent(self):
-        return self.type == CommissionTypeEnum.PERCENT
+        return self.type == CommissionTypeEnum.PERCENT.value
 
     def is_fixed(self):
-        return self.type == CommissionTypeEnum.FIXED
+        return self.type == CommissionTypeEnum.FIXED.value
 
     @classmethod
     def get_property_attrs(cls):
@@ -78,6 +109,8 @@ class BaseStrategy(ABC):
         return getattr(self.instance, self.type_field_name)
 
     def set_type(self, value):
+        if isinstance(value, Enum):
+            value = value.value
         setattr(self.instance, self.type_field_name, value)
 
     type = property(get_type, set_type)
@@ -89,8 +122,6 @@ class GenericStrategy(BaseStrategy):
 
 class GenericTaxStrategy(BaseStrategy):
     proxy_attrs = BaseStrategy.proxy_attrs + [
-        'calculate_tax',
-        'extract_tax',
         'update_tax',
         'tax'
     ]
@@ -98,29 +129,6 @@ class GenericTaxStrategy(BaseStrategy):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.tax_field_name = self._field.field_tax_name
-
-    def calculate_tax(self, total):
-        if self.is_percent():
-            return self.get_percent(total, self.value)
-
-        elif self.is_fixed():
-            return normalize_decimal(self.value)
-        raise NotImplementedError("Commission type %s not implemented" % self.type)
-
-    def extract_tax(self, total_with_tax):
-        '''
-        Получаем коммиссию из цены с примененной коммиссией.
-        Не учитывает изменения коммиссии
-
-        :param total_with_tax: Стоимость с комиссией
-        :return:
-        '''
-        if self.is_percent():
-            return self.extract_percent(total_with_tax, self.value)
-
-        elif self.is_fixed():
-            return normalize_decimal(self.value)
-        raise NotImplementedError("Commission type %s not implemented" % self.type)
 
     def update_tax(self, total):
         self.obj.tax = self.calculate_tax(total)

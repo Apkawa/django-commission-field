@@ -1,13 +1,62 @@
 sudo: false
 language: python
+
 python:
-    - "2.7"
-    - "3.4"
-    - "3.5"
-    - "3.6"
-    - "3.7"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9-dev"
+  - "nightly"
+
+env:
+  - DJANGO=1.11
+  - DJANGO=2.2
+  - DJANGO=3.0
+  - DJANGO=dev
+
+matrix:
+  fast_finish: true
+  include:
+    - env: TOXENV=qa
+      python: "3.7"
+    - env: TOXENV=py37-django-dev
+      python: "3.7"
+
+  exclude:
+    # Python/Django combinations that aren't officially supported
+    - { env: DJANGO=1.11, python: "3.8" }
+    - { env: DJANGO=1.11, python: "3.9-dev" }
+    - { env: DJANGO=1.11, python: "nightly" }
+    - { env: DJANGO=3.0, python: "3.5" }
+
+  allow_failures:
+    - python: "3.9-dev"
+    - python: "nightly"
+    - env: DJANGO=1.11
+    - env: TOXENV=qa
+    - env: TOXENV=py37-django-dev
+
+
 install: pip install tox-travis python-coveralls codecov
-script: tox -- -v --cov commission_field --cov-report term-missing --flake8
+
+script: tox
 after_success:
-  - coveralls
   - codecov
+
+
+#deploy:
+#  provider: pypi
+#  twine_version: 3.1.1
+#  user: __token__
+#  password:
+#    # travis encrypt pypi-...
+#    # https://docs.travis-ci.com/user/encryption-keys/
+#    secure: ''
+#  on:
+#    python: 3.7
+#    skip_existing: true
+#    tags: true
+#    distributions: sdist bdist_wheel
+#    repo: Apkawa/{django-app-template}
+#    branch: master

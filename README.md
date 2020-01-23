@@ -1,63 +1,45 @@
+[![PyPi](https://img.shields.io/pypi/v/django-commission-field.svg)](https://pypi.python.org/pypi/django-commission-field)
 [![Build Status](https://travis-ci.org/Apkawa/django-commission-field.svg?branch=master)](https://travis-ci.org/Apkawa/django-commission-field)
-[![Coverage Status](https://coveralls.io/repos/github/Apkawa/django-commission-field/badge.svg)](https://coveralls.io/github/Apkawa/django-commission-field)
-[![codecov](https://codecov.io/gh/Apkawa/django-commission-field/branch/master/graph/badge.svg)](https://codecov.io/gh/Apkawa/django-commission-field)
+[![Documentation Status](https://readthedocs.org/projects/django-commission-field/badge/?version=latest)](https://pytest-ngrok.readthedocs.io/en/latest/?badge=latest)
+[![Codecov](https://codecov.io/gh/Apkawa/django-commission-field/branch/master/graph/badge.svg)](https://codecov.io/gh/Apkawa/django-commission-field)
 [![Requirements Status](https://requires.io/github/Apkawa/django-commission-field/requirements.svg?branch=master)](https://requires.io/github/Apkawa/django-commission-field/requirements/?branch=master)
 [![PyUP](https://pyup.io/repos/github/Apkawa/django-commission-field/shield.svg)](https://pyup.io/repos/github/Apkawa/django-commission-field)
-[![PyPI](https://img.shields.io/pypi/pyversions/django-commission-field.svg)]()
-
-Project for merging different file types, as example easy thumbnail image and unpacking archive in one field
+[![PyPi Python versions](https://img.shields.io/pypi/pyversions/django-commission-field.svg)](https://pypi.python.org/pypi/django-commission-field)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 # Installation
 
 ```bash
 pip install django-commission-field
-
 ```
 
 or from git
 
 ```bash
-pip install -e git+https://githib.com/Apkawa/django-commission-field.git#egg=django-commission-field
+pip install -e git+https://githib.com/Apkawa/django-commission-field.git@master#egg=django-commission-field
 ```
 
 ## Django and python version
 
-* python-2.7 - django>=1.8,<=1.11
-* python-3.4 - django>=1.8,<=1.11
-* python-3.5 - django>=1.8,<=1.11
-* python-3.6 - django>=1.11
+| Python<br/>Django | 3.5 | 3.6 | 3.7 | 3.8 |
+|:-----------------:|-----|-----|-----|-----|
+| 1.8               |  ✘  |  ✘  |  ✘  |  ✘  |
+| 1.11              |  ✔  |  ✔  |  ✔  |  ✘  |
+| 2.2               |  ✔  |  ✔  |  ✔  |  ✔  |
+| 3.0               |  ✘  |  ✔  |  ✔  |  ✔  |
 
 
 # Usage
 
+```python
+from django.db import models
+from commission_field.db.fields import CommissionField, CommissionTypeEnum
 
 
-# Contributing
+class ExampleModel(models.Model):
+    discount = CommissionField()
 
-## run example app
 
-```bash
-pip install -r requirements.txt
-./test/manage.py migrate
-./test/manage.py runserver
+example = ExampleModel(discount_value=10, discount_type=CommissionTypeEnum.PERCENT)
+assert example.discount.calculate_tax(1000) == 100
 ```
-
-## run tests
-
-```bash
-pip install -r requirements.txt
-pytest
-tox
-```
-
-## publish pypi
-
-```bash
-python setup.py sdist upload -r pypi
-```
-
-
-
-
-
-

@@ -1,10 +1,6 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import enum
 from decimal import Decimal
 
-import django
 import six
 from django.db import models
 
@@ -57,6 +53,7 @@ class CommissionField(models.Field):
         self.field_type_name = _commission_type_field_name(name)
         self.field_value_name = _commission_value_field_name(name)
 
+        # TODO handle enum value
         commission_type_field = models.PositiveSmallIntegerField(
             'Тип комисcии',
             default=self.type_default,
@@ -80,7 +77,7 @@ class CommissionField(models.Field):
         if not cls._meta.abstract:
             self.add_fields(cls, name)
 
-        super(CommissionField, self).contribute_to_class(cls, name, virtual_only=True)
+        super(CommissionField, self).contribute_to_class(cls, name)
         # Do not create column
         self.column = None
         self.concrete = False
